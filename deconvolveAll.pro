@@ -99,7 +99,7 @@ pro deconvolutionPCA, stokesParameter, psfFile, maxIter, npca=npca, apodization=
 
 ; Reconstruct a large map with the PSF in the center
 	psf_large = fltarr(dimx,dimy)
-	psf_large[dimx/2-psfSize/2:dimx/2+psfSize/2,dimy/2-psfSize/2:dimy/2+psfSize/2] = psfpsf_large = psf
+	psf_large[dimx/2-psfSize/2:dimx/2+psfSize/2,dimy/2-psfSize/2:dimy/2+psfSize/2] = psf
 
 ; Renormalize the total area to unity
 	psf_large = psf_large / total(psf_large)
@@ -204,6 +204,6 @@ pro deconvolveAll
 ; Stokes parameters saved on different files
 		precalculatePCA, data, stokes[i]
 		computePCAMaps, stokes[i], npca[i]
-		deconvolutionPCA, stokes[i], iter[i], /filter, npca=npca[i]
+		deconvolutionPCA, stokes[i], iter[i], npca=npca[i]
 	endfor
 end
