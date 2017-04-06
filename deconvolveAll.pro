@@ -197,6 +197,7 @@ pro deconvolveAll
 	stokes = ['I','Q','U','V']
 	npca = [10,10,10,10]
 	iter = [50,25,25,25]
+        psf_file = 'psf.fits'
 	for i = 0, 3 do begin
 
 ; Read your Stokes parameter file and enter it into the next routine
@@ -204,6 +205,6 @@ pro deconvolveAll
 ; Stokes parameters saved on different files
 		precalculatePCA, data, stokes[i]
 		computePCAMaps, stokes[i], npca[i]
-		deconvolutionPCA, stokes[i], iter[i], npca=npca[i]
+		deconvolutionPCA, stokes[i], psf_file, iter[i], npca=npca[i]
 	endfor
 end
