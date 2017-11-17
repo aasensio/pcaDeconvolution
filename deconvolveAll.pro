@@ -28,6 +28,9 @@ pro computePCAMaps, stokesParameter, nPCACoefficients
 	print, 'Reading Stokes '+stokesParameter
 	restore,root+'_orig.idl'
 	restore,root+'_eigenvec.idl'
+
+	nx = n_elements(stokes[0,*,0])
+	ny = n_elements(stokes[0,0,*])	
 		
 	print, 'Projecting on the '+strtrim(string(nPCACoefficients),2)+' PCA eigenvectors...'
 	s = size(stokes)
@@ -46,6 +49,17 @@ pro computePCAMaps, stokesParameter, nPCACoefficients
 
 	print, 'Saving maps of PCA coefficients...'
 	save, coef, filename=root+'_PCAMaps.idl'
+
+	final = reform(stokes, nlambda, nx*ny)
+	sigma = fltarr(nPCACoefficients,nx, ny)
+        print *, 'Computing difference in reconstruction'
+	for i = 0, nPCACoefficients-1 do begin
+		reconstructed = reform(coef[0:i,*,*],i+1,nx*ny) ## transpose(evec[0:i,*]) + mn # replicate(1.d0, nx*ny)
+		sigma[i,*,*] = reform(stddev(reconstructed - final, dimension=1), nx, ny)
+		
+	endfor
+	save, sigma, filename=root+'_sigma.idl'
+
 	coef = 0.0
 	stokes = 0.0
 	
