@@ -68,14 +68,15 @@ end
 ; PCA-regularized deconvolution
 ; Deconvolve the Stokes parameters using a Richardson-Lucy algorithm
 ; stokesParameter: 'I', 'Q', 'U', 'V'
-; psfFile : FITS file containing the PSF
+; psf : array containing the PSF
 ; maxIter : maximum number of iterations
 ; npca : number of PCA eigenvectors to consider
 ; apodization : percentage of the image to apodize
+; monochromatic : use monochromatic images instead of PCA projected maps. Then npca becomes number of wavelengths
 ;
 ; Example
 ; deconvolutionPCA, 'I', 50, npca=4
-pro deconvolutionPCA, stokesParameter, psfFile, maxIter, npca=npca, apodization=apodization
+pro deconvolutionPCA, stokesParameter, psf, maxIter, npca=npca, apodization=apodization, monochromatic=monochromatic
 
 	if (not keyword_set(apodization)) then apodization = 1.d0 / 20.d0
 		
@@ -104,11 +105,16 @@ pro deconvolutionPCA, stokesParameter, psfFile, maxIter, npca=npca, apodization=
 		mask = replicate(1,dimx,dimy)
 	endelse
 
-; We won't need the original data anymore
-	stokes = 0.0
 
-; Read the PSF. We assume the PSF is given in a square array. Note that it should be odd
-	psf = readfits(psfFile)
+	if (keyword_set(monochromatic)) then begin
+		coef = stokes
+	endif else begin
+; We won't need the original data anymore
+		stokes = 0.0
+	endelse
+
+
+; We assume the PSF is given in a square array. Note that it should be odd
 	psfSize = n_elements(psf[*,0])
 
 ; Reconstruct a large map with the PSF in the center
@@ -162,17 +168,21 @@ pro deconvolutionPCA, stokesParameter, psfFile, maxIter, npca=npca, apodization=
 					deconv_old = deconv
 				endelse
 			endif
-			
-			tvframe,dat*mdat
-			tvframe,deconv*mdat
-			
+						
 		endwhile
+
+		tvframe,dat*mdat
+		tvframe,deconv*mdat
 		
 		coef_recons[i,*,*] = deconv * mdat
 
 	endfor
 
-	save, filename= root+'_deconvolvedPCAMaps.idl', coef_recons
+	if (keyword_set(monochromatic)) then begin
+		save, filename= root+'_deconvolvedMonochromaticMaps.idl', coef_recons
+	endif else begin
+		save, filename= root+'_deconvolvedPCAMaps.idl', coef_recons
+	endelse
 		
 	!p.multi = 0
 
