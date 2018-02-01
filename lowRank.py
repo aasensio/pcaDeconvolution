@@ -3,7 +3,6 @@ import numpy as np
 import scipy.io
 import scipy.signal
 from astropy.io import fits
-from ipdb import set_trace as stop
 
 def hanningWindow(nx, ny, nPixX, nPixY):
 	"""
@@ -77,10 +76,13 @@ class lowRankDeconv(object):
 		
 		Args:
 		    rank (int, optional): rank of the solution
-		    niter (int, optional): number of iterations
+		    niter (int, optional): number of iterationns
+                    padX (int, optional): X padding to apply when computing the contrast
+                    padY (int, optional): Y padding to apply when computing the contrast
+                    wavelength (int, optional): wavelength point to be used for computing the contrast
 		
 		Returns:
-		    TYPE: Description
+                    float : deconvolved map
 		"""
 		self.x = np.copy(self.stokes)
 		self.xNew = np.copy(self.stokes)
