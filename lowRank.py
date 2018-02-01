@@ -1,6 +1,9 @@
+from __future__ import print_function
 import numpy as np
 import scipy.io
 import scipy.signal
+from astropy.io import fits
+from ipdb import set_trace as stop
 
 def hanningWindow(nx, ny, nPixX, nPixY):
 	"""
@@ -20,12 +23,12 @@ def hanningWindow(nx, ny, nPixX, nPixY):
 	winY = np.hanning(nPixY)
 
 	winOutX = np.ones(nx)
-	winOutX[0:nPixX/2] = winX[0:nPixX/2]
-	winOutX[-nPixX/2:] = winX[-nPixX/2:]
+	winOutX[0:int(nPixX/2)] = winX[0:int(nPixX/2)]
+	winOutX[-int(nPixX/2):] = winX[-int(nPixX/2):]
 
 	winOutY = np.ones(ny)
-	winOutY[0:nPixY/2] = winY[0:nPixY/2]
-	winOutY[-nPixY/2:] = winY[-nPixY/2:]		
+	winOutY[0:int(nPixY/2)] = winY[0:int(nPixY/2)]
+	winOutY[-int(nPixY/2):] = winY[-int(nPixY/2):]		
 
 	return np.outer(winOutX, winOutY)
 
@@ -109,9 +112,9 @@ class lowRankDeconv(object):
 			t = tNew
 
 			self.x = np.copy(self.xNew)
-			std = np.std(self.x[padX:-padX,padY:-padY,wavelength])
+			std = np.std(self.x[padX:-padX,padY:-padY,wavelength-1])
 			self.std.append(std)
-			print "Iteration {0} - std={1} - constrast={2}%".format(loop, std, np.std(self.x[padX:-padX,padY:-padY,wavelength])/np.mean(self.x[padX:-padX,padY:-padY,wavelength])*100.0)
+			print("Iteration {0} - std={1} - constrast={2}%".format(loop, std, np.std(self.x[padX:-padX,padY:-padY,wavelength-1])/np.mean(self.x[padX:-padX,padY:-padY,wavelength-1])*100.0))
 			
 
 		self.std = np.asarray(self.std)
@@ -119,58 +122,57 @@ class lowRankDeconv(object):
 
 		return self.stIDeconv
 	
+if (__name__ == '__main__'):
+	# Number of PCA coefficients to keep in each Stokes parameter
+	nPCA = [6,4,4,4]
+	labels = ['sti', 'stq', 'stu', 'stv']
+	nIter = [5,10,10,10]
 
-# Number of PCA coefficients to keep in each Stokes parameter
-nPCA = [6,4,4,4]
-labels = ['sti', 'stq', 'stu', 'stv']
-nIter = [15,10,10,10]
+	stokes_deconv = [None] * 4
 
-deconv = [None] * 4
+	for loopStokes in range(1):
+		label = labels[loopStokes]
 
-for loopStokes in range(4):
-	label = labels[loopStokes]
+	# stokes is a variable with size [nx,ny,nlambda] for each Stokes parameter
+		tmp = scipy.io.readsav('smallPatch.idl')
+		stokes = tmp['data']
+		nx, ny, nl = stokes.shape
+		nPixBorder = int(nx / 2)
 
-# stokes is a variable with size [nx,ny,nlambda] for each Stokes parameter
-	# stokes = 
-	nx, ny, nl = stokes.shape
-	nPixBorder = nx / 2
+	# Choose among a reflecting padding or an apodization to make the map periodic
+		# Pad tha map to make it somehow
+		# stokes = np.pad(stokes, ((nPixBorder,nPixBorder), (0,0), (0,0)), mode='reflect')	
 
-# Choose among a reflecting padding or an apodization to make the map periodic
-	# Pad tha map to make it somehow
-	# stokes = np.pad(stokes, ((nPixBorder,nPixBorder), (0,0), (0,0)), mode='reflect')	
+	# In this case, I choose an apodization mask with 12 pixels
+		# Apodization mask
+		window = hanningWindow(nx,ny,12,12)
+		stokes *= window[:,:,None]
 
-# In this case, I choose an apodization mask with 12 pixels
-	# Apodization mask
-	window = hanningWindow(nx,ny,12,12)
-	stokes *= window[:,:,None]
+		# Read the PSF and make it the same size as the data. The PSF has size 65x65
+		# Change the way to read the PSF from your HD
+		f = fits.open('hinode_psf.0.16-df.fits')
+		psfOrig = f[0].data
+		psfOrig = psfOrig[2:-2,2:-2]
+		psfSize = psfOrig.shape[0]
 
-	# Read the PSF and make it the same size as the data. The PSF has size 65x65
-	# Change the way to read the PSF from your HD
-	psfOrig = np.load('psf_0.5arcsec.npy')
-	psfOrig = np.roll(np.roll(psfOrig,32,axis=0),32,axis=1)
-	psfOrig = psfOrig[2:-3,2:-3]
-	psfSize = psfOrig.shape[0]
-			
-# Put is in the appropriate place in the map
-	psf = np.zeros(stokes.shape[0:2])
-	psf[:,ny/2-psfSize/2:ny/2+psfSize/2] = psfOrig
-	psf = np.roll(psf, nx/2, axis=0)
-	psf = np.roll(psf, ny/2, axis=1)
+		psf = np.zeros((nx,ny))
+		psf[int(nx/2-psfSize/2+1):int(nx/2+psfSize/2+1),int(ny/2-psfSize/2+1):int(ny/2+psfSize/2+1)] = psfOrig
+		psf = np.fft.fftshift(psf)
+					
+		# Normalize to unit area
+		psf /= np.sum(psf)
 
-	# Normalize to unit area
-	psf /= np.sum(psf)
+		# Instantiate the class
+		out = lowRankDeconv(stokes, psf)
 
-	# Instantiate the class
-	out = lowRankDeconv(stokes, psf)
+		# Carry out the deconvolution using 20 iterations and asuming rank-5 for the data
+		out.FISTA(rank=nPCA[loopStokes], niter=nIter[loopStokes], padX=12, padY=12, wavelength=112)
 
-	# Carry out the deconvolution using 20 iterations and asuming rank-5 for the data
-	out.FISTA(rank=nPCA[loopStokes], niter=nIter[loopStokes], padX=nPixBorder, padY=12, wavelength=201)
+	# Cut the piece without apodization
+		orig, deconv = out.stokes, out.stIDeconv
+		orig = orig[12:-12,12:-12,:]
+		deconv = deconv[12:-12,12:-12,:]
 
-# Cut the piece without apodization
-	orig, deconv = out.stokes, out.stIDeconv
-	orig = orig[12:-12,12:-12,:]
-	deconv = deconv[12:-12,12:-12,:]
+		stokes_deconv[loopStokes] = deconv
 
-	stokesDeconv[loopStokes] = deconv
-
-stokesDeconv = np.asarray(stokesDeconv)
+	stokes_deconv = np.asarray(stokes_deconv)

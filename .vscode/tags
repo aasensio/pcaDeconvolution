@@ -1,0 +1,36 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+FISTA	../lowRank.py	/^	def FISTA(self, rank=5, niter=10, padX=0, padY=0, wavelength=0):$/;"	kind:member	line:66
+__init__	../lowRank.py	/^	def __init__(self, stokes, psf):$/;"	kind:member	line:36
+backward	../lowRank.py	/^	def backward(self, z):$/;"	kind:member	line:63
+deconv	../lowRank.py	/^	deconv = deconv[12:-12,12:-12,:]$/;"	kind:variable	line:172
+deconv	../lowRank.py	/^deconv = [None] * 4$/;"	kind:variable	line:128
+forward	../lowRank.py	/^	def forward(self, z):$/;"	kind:member	line:60
+hanningWindow	../lowRank.py	/^def hanningWindow(nx, ny, nPixX, nPixY):$/;"	kind:function	line:5
+io	../lowRank.py	/^import scipy.io$/;"	kind:namespace	line:2
+label	../lowRank.py	/^	label = labels[loopStokes]$/;"	kind:variable	line:131
+labels	../lowRank.py	/^labels = ['sti', 'stq', 'stu', 'stv']$/;"	kind:variable	line:125
+lowRank.py	../lowRank.py	1;"	kind:file	line:1
+lowRankDeconv	../lowRank.py	/^class lowRankDeconv(object):$/;"	kind:class	line:32
+nIter	../lowRank.py	/^nIter = [15,10,10,10]$/;"	kind:variable	line:126
+nPCA	../lowRank.py	/^nPCA = [6,4,4,4]$/;"	kind:variable	line:124
+nPixBorder	../lowRank.py	/^	nPixBorder = nx \/ 2$/;"	kind:variable	line:136
+np	../lowRank.py	/^import numpy as np$/;"	kind:namespace	line:1
+orig	../lowRank.py	/^	orig = orig[12:-12,12:-12,:]$/;"	kind:variable	line:171
+out	../lowRank.py	/^	out = lowRankDeconv(stokes, psf)$/;"	kind:variable	line:164
+psf	../lowRank.py	/^	psf = np.roll(psf, nx\/2, axis=0)$/;"	kind:variable	line:157
+psf	../lowRank.py	/^	psf = np.roll(psf, ny\/2, axis=1)$/;"	kind:variable	line:158
+psf	../lowRank.py	/^	psf = np.zeros(stokes.shape[0:2])$/;"	kind:variable	line:155
+psfOrig	../lowRank.py	/^	psfOrig = np.load('psf_0.5arcsec.npy')$/;"	kind:variable	line:149
+psfOrig	../lowRank.py	/^	psfOrig = np.roll(np.roll(psfOrig,32,axis=0),32,axis=1)$/;"	kind:variable	line:150
+psfOrig	../lowRank.py	/^	psfOrig = psfOrig[2:-3,2:-3]$/;"	kind:variable	line:151
+psfSize	../lowRank.py	/^	psfSize = psfOrig.shape[0]$/;"	kind:variable	line:152
+scipy	../lowRank.py	/^import scipy.io$/;"	kind:namespace	line:2
+scipy	../lowRank.py	/^import scipy.signal$/;"	kind:namespace	line:3
+signal	../lowRank.py	/^import scipy.signal$/;"	kind:namespace	line:3
+stokesDeconv	../lowRank.py	/^stokesDeconv = np.asarray(stokesDeconv)/;"	kind:variable	line:176
+window	../lowRank.py	/^	window = hanningWindow(nx,ny,12,12)$/;"	kind:variable	line:144
